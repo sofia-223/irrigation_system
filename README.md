@@ -1,4 +1,4 @@
-IRRIGATION SYSTEM
+#Irrigation system 
 
 progetto simulato di un sistema di irrigazione, sviluppato in C, basato su FreeRTOS
 
