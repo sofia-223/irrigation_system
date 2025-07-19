@@ -8,7 +8,7 @@ void ROSTask(void *pvParameters) {
     ROSTaskParams *params = (ROSTaskParams *) pvParameters;
 
     while(1) {
-        // Simuliamo la pubblicazione dello stato di irrigazione
+        // Simuliamo la pubblicazione dello stato di irrigazione con print 
         xSemaphoreTake(params->irrigationMutex, portMAX_DELAY);
         int state = *(params->irrigationActive);
         xSemaphoreGive(params->irrigationMutex);
