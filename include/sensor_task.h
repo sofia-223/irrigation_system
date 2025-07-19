@@ -8,6 +8,10 @@
 #include <stdbool.h>
 
 
-void SensorTask(void *pvParameters);
+void TemperatureTask(void *pvParameters);
+void HumidityTask(void *pvParameters);
+void RainTask(void *pvParameters);
+//void SensorTask(void *pvParameters);
+void AggregatorTask(void *pvParameters);
 
 #endif // SENSOR_TASK_H

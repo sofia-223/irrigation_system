@@ -1,35 +1,63 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
+#include <stdlib.h>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+
 
 #include "sensor_task.h"
 #include "logic_task.h"
 #include "ros_task.h"
 #include "data_structure.h"
 
+SensorData sensorData;
+SemaphoreHandle_t sensorDataMutex;
+SemaphoreHandle_t irrigationMutex;
+bool irrigationActive=false; // variabile condivisa che rappresenta se l'irrigazione è attiva o no
+
+bool humidityUpdated=false;
+bool rainUpdated=false;
+bool tempUpdated=false; 
+
 int main(void) {
     
+    srand((unsigned int)time(NULL));
     // crea una coda per comunicare i dati dei sensori tra i task (fino a 10 elementi)
-    QueueHandle_t sensorQueue = xQueueCreate(10, sizeof(SensorData));
+    QueueHandle_t logicQueue = xQueueCreate(1, sizeof(SensorData));
     
+    sensorDataMutex=xSemaphoreCreateMutex();
     // crea un mutex per proteggere l'accesso alla variabile 'irrigationActive'
-    SemaphoreHandle_t irrigationMutex = xSemaphoreCreateMutex();
+    irrigationMutex = xSemaphoreCreateMutex();
     
     // variabile condivisa che rappresenta se l'irrigazione è attiva o no
-    bool irrigationActive = false;
+    
 
      // controllo che queue e mutex siano stati creati correttamente
-    if(sensorQueue == NULL || irrigationMutex == NULL) {
-        printf("Failed to create queue or mutex\n");
+    if(sensorDataMutex == NULL || irrigationMutex == NULL || logicQueue==NULL) {
+        printf("Failed to create mutex or queue\n");
         return 1;
     }
 
+    AggregatorParams aggregatorParams = {
+        .sensorData = &sensorData,
+        .sensorDataMutex = sensorDataMutex,
+        .logicQueue = logicQueue,
+        .tempUpdated = &tempUpdated,
+        .humidityUpdated = &humidityUpdated,
+        .rainUpdated = &rainUpdated
+    };
+
+    sensorData.temperature = 0.0f;
+    sensorData.humidity = 0.0f;
+    sensorData.raining = false;
+
     // prepara i parametri per la LogicTask (serve una struct con tutti i riferimenti)
     LogicParams logicParams = {
-        .sensorQueue = sensorQueue,
+        .logicQueue=logicQueue,
         .irrigationMutex = irrigationMutex,
         .irrigationActive = &irrigationActive
     };
@@ -39,8 +67,13 @@ int main(void) {
         .irrigationActive = &irrigationActive
     };
 
+    xTaskCreate(TemperatureTask, "TemperatureTask", 512, &aggregatorParams, 1, NULL);
+    xTaskCreate(HumidityTask, "HumidityTask", 512, &aggregatorParams, 1, NULL);
+    xTaskCreate(RainTask, "RainTask", 512, &aggregatorParams, 1, NULL);
+
+
+    xTaskCreate(AggregatorTask, "AggregatorTask", 512, &aggregatorParams, 2, NULL);
     
-    xTaskCreate(SensorTask, "SensorTask", 512, (void *)sensorQueue, 1, NULL); //creo task che simula sensori
     xTaskCreate(LogicTask, "LogicTask", 512, (void *)&logicParams, 1, NULL); //creo task della logica
     xTaskCreate(ROSTask, "ROSTask", 512, (void *)&rosParams, 1, NULL); //task pubblicazione ROS2
 

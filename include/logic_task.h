@@ -10,7 +10,7 @@
 
 
 typedef struct {
-    QueueHandle_t sensorQueue;
+    QueueHandle_t logicQueue;
     SemaphoreHandle_t irrigationMutex;
     bool* irrigationActive;
 } LogicParams;

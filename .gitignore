@@ -1,0 +1,13 @@
+# Cartelle e file di build
+build/
+*.o
+*.elf
+*.bin
+
+# File temporanei di editor
+*.swp
+.vscode/
+*.log
+
+# Altri file da ignorare
+*.exe

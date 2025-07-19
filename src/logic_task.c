@@ -12,7 +12,7 @@ void LogicTask(void *pvParameters) {
 
     while(1) {
         // Riceve i dati dei sensori dalla coda (bloccante finché non arrivano dati)
-        if(xQueueReceive(params->sensorQueue, &received, portMAX_DELAY) == pdPASS) {
+        if(xQueueReceive(params->logicQueue, &received, portMAX_DELAY) == pdPASS) {
              // Logica di attivazione dell'irrigazione:
             // accende se NON piove e se:
             // - umidità è sotto al 40% OPPURE
@@ -25,7 +25,8 @@ void LogicTask(void *pvParameters) {
             xSemaphoreGive(params->irrigationMutex);
             
              // Stampa lo stato dell'irrigazione deciso dalla logica
-            printf("[Logic] Irrigation: %s\n", shouldIrrigate ? "ON" : "OFF");
+            printf("[Logic] Received: Temp=%.1f, Humidity=%.1f, Raining=%d, Irrigation: %s\n", received.temperature, received.humidity, received.raining,shouldIrrigate ? "ON" : "OFF");
+            
         }
         vTaskDelay(pdMS_TO_TICKS(LOGIC_TASK_DELAY_MS));
     }
