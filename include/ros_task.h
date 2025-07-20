@@ -8,7 +8,7 @@
 
 
 typedef struct {
-    SemaphoreHandle_t irrigationMutex;
+    //SemaphoreHandle_t irrigationMutex;
     bool* irrigationActive;
 } ROSTaskParams;
 

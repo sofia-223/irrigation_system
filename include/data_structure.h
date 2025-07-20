@@ -4,7 +4,7 @@
 typedef struct {
     float humidity;
     float temperature;
-    int raining 
+    int raining; 
 } SensorData;
 
 #endif // DATA_STRUCTURES_H

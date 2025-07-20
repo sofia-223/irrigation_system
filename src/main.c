@@ -6,7 +6,7 @@
 #include "semphr.h"
 
 #include "sensor_task.h"
-#include "logic_task.h"
+#include "irrigator_task.h"
 #include "ros_task.h"
 #include "data_structure.h"
 
@@ -27,11 +27,26 @@ int main(void) {
         return 1;
     }
 
-    // prepara i parametri per la LogicTask (serve una struct con tutti i riferimenti)
-    LogicParams logicParams = {
+    // prepara i parametri per l'IrrigatorTask (serve una struct con tutti i riferimenti)
+    IrrigatorParams irrigator1Params  = {
         .sensorQueue = sensorQueue,
         .irrigationMutex = irrigationMutex,
-        .irrigationActive = &irrigationActive
+        .irrigationActive = &irrigationActive,
+        .name = "Irrigator 1"
+    };
+
+    IrrigatorParams irrigator2Params = {
+        .sensorQueue = sensorQueue,
+        .irrigationMutex = irrigationMutex,
+        .irrigationActive = &irrigationActive,
+        .name = "Irrigator 2"
+    };
+
+    IrrigatorParams irrigator3Params = {
+        .sensorQueue = sensorQueue,
+        .irrigationMutex = irrigationMutex,
+        .irrigationActive = &irrigationActive,
+        .name = "Irrigator 3"
     };
 
     ROSTaskParams rosParams = {
@@ -41,7 +56,9 @@ int main(void) {
 
     
     xTaskCreate(SensorTask, "SensorTask", 512, (void *)sensorQueue, 1, NULL); //creo task che simula sensori
-    xTaskCreate(LogicTask, "LogicTask", 512, (void *)&logicParams, 1, NULL); //creo task della logica
+    xTaskCreate(IrrigatorTask, "Irrigator1Task", 512, (void *)&irrigator1Params, 1, NULL); //creo task irrigatore1
+    xTaskCreate(IrrigatorTask, "Irrigator2Task", 512, (void *)&irrigator2Params, 1, NULL); //creo task irrigatore2
+    xTaskCreate(IrrigatorTask, "Irrigator3Task", 512, (void *)&irrigator3Params, 1, NULL); //creo task irrigatore3
     xTaskCreate(ROSTask, "ROSTask", 512, (void *)&rosParams, 1, NULL); //task pubblicazione ROS2
 
     vTaskStartScheduler();

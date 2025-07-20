@@ -9,13 +9,13 @@ void ROSTask(void *pvParameters) {
 
     while(1) {
         // Simuliamo la pubblicazione dello stato di irrigazione
-        xSemaphoreTake(params->irrigationMutex, portMAX_DELAY);
+        //xSemaphoreTake(params->irrigationMutex, portMAX_DELAY);
         int state = *(params->irrigationActive);
-        xSemaphoreGive(params->irrigationMutex);
+        //xSemaphoreGive(params->irrigationMutex);
 
         printf("[ROS] Publishing irrigation state: %s\n", state ? "ON" : "OFF");
 
         // Simuliamo il delay del task
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }

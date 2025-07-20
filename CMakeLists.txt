@@ -2,13 +2,13 @@
 add_executable(irrigation_system 
     src/main.c
     src/sensor_task.c
-    src/logic_task.c
+    src/irrigator_task.c
     src/ros_task.c
 )
 
 # Include directories
 target_include_directories(irrigation_system PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/apps/common  # Include common_utils headers
 )
 
