@@ -17,11 +17,11 @@ void IrrigatorTask(void *pvParameters) {
             // accende se NON piove e se:
             // - umidità è sotto al 40% OPPURE
             // - la temperatura è sopra i 30°C
-            int shouldIrrigate = (!received.raining && (received.humidity<40.0f || received.temperature>30.0f));
+            int shouldIrrigate = (!received.raining && (received.humidity<60.0f || received.temperature>30.0f));
 
             if (shouldIrrigate) {
                 // Prova a entrare in mutua esclusionex
-                if (xSemaphoreTake(params->irrigationMutex, 0) == pdPASS) {
+                //if (xSemaphoreTake(params->irrigationMutex, 0) == pdPASS) {
                     if (!(*params->irrigationActive)) {
                         *params->irrigationActive = true;
                         printf("[%s] Irrigating...\n", params->name);
@@ -29,10 +29,10 @@ void IrrigatorTask(void *pvParameters) {
                         *params->irrigationActive = false;
                         printf("[%s] Done irrigating.\n", params->name);
                     }
-                    xSemaphoreGive(params->irrigationMutex);
-                } else {
-                    printf("[%s] Un altro irrigatore è già attivo.\n", params->name);
-                }
+                    //xSemaphoreGive(params->irrigationMutex);
+               // } else {
+                 //   printf("[%s] Un altro irrigatore è già attivo.\n", params->name);
+               // }
             } else {
                 printf("[%s] No sprinkler needed.\n", params->name);
             }
