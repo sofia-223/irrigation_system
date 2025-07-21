@@ -50,7 +50,7 @@ int main(void) {
     };
 
     ROSTaskParams rosParams = {
-        .irrigationMutex = irrigationMutex,
+        //.irrigationMutex = irrigationMutex,
         .irrigationActive = &irrigationActive
     };
 
