@@ -2,7 +2,7 @@
 #include "irrigator_task.h"
 
 // Definisce ogni quanto tempo (in millisecondi) l'IrrigatorTask si attiva
-#define IRRIGATOR_TASK_DELAY_MS 4000
+#define IRRIGATOR_TASK_DELAY_MS 3000
 
 // Task che decide se attivare l'irrigazione in base ai dati dei sensori
 void IrrigatorTask(void *pvParameters) {
@@ -11,7 +11,8 @@ void IrrigatorTask(void *pvParameters) {
     SensorData received; // Variabile per memorizzare i dati ricevuti dai sensori
 
     while(1) {
-        // Riceve i dati dei sensori dalla coda (bloccante finché non arrivano dati, aspetta tutto il tempo necessario)
+        // Riceve i dati dei sensori dalla coda (bloccante finché non arrivano dati, aspetta tutto il tempo necessario).
+        //La coda è thread safe quindi già qui si decide l'unico thread che riusirà a leggere il dato
         if(xQueueReceive(params->sensorQueue, &received, portMAX_DELAY) == pdPASS) {
             // Logica di attivazione dell'irrigazione:
             // accende se NON piove e se:
@@ -24,9 +25,11 @@ void IrrigatorTask(void *pvParameters) {
                 //if (xSemaphoreTake(params->irrigationMutex, 0) == pdPASS) {
                     if (!(*params->irrigationActive)) {
                         *params->irrigationActive = true;
+                        xQueueSend(params->rosNotifyQueue, &params->name, 0);
                         printf("[%s] Irrigating...\n", params->name);
                         vTaskDelay(pdMS_TO_TICKS(2000));
                         *params->irrigationActive = false;
+                        xQueueSend(params->rosNotifyQueue, &params->name, 0);
                         printf("[%s] Done irrigating.\n", params->name);
                     }
                     //xSemaphoreGive(params->irrigationMutex);
