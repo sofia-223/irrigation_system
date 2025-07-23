@@ -11,6 +11,9 @@ static bool *irrigationActivePtr;
 static SemaphoreHandle_t irrigationMutex;
 static QueueHandle_t rosNotifyQueue;
 
+#define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Aborting.\n",__LINE__,(int)temp_rc);vTaskDelete(NULL);}}
+#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Continuing.\n",__LINE__,(int)temp_rc);}}
+
 static void publish_irrigation_state(const char* source) {
     if (xSemaphoreTake(irrigationMutex, portMAX_DELAY) == pdPASS) {
         msg.data = *irrigationActivePtr;
@@ -19,14 +22,14 @@ static void publish_irrigation_state(const char* source) {
         printf("[micro-ROS] Could not take mutex to read irrigation state\n");
         return;
     }
-    rcl_publish(&publisher, &msg, NULL);
+    RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
     //printf("[micro-ROS][%s] Published irrigation state: %s\n",source, msg.data ? "ON" : "OFF");
 }
 
 
 //funzione chiamata periodicamente dal timer per pubblicare lo stato dell'irrigazione
 void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-    (void) last_call_time;
+	RCLC_UNUSED(last_call_time);
     if (timer == NULL) {
         return;
     }
@@ -47,36 +50,36 @@ void ROSTask(void *pvParameters) {
 
     // inizializza struttura di supporto
     rclc_support_t support;
-    rclc_support_init(&support, 0, NULL, &allocator);
+    RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
     
     // crea un nodo ROS chiamato irrigation_node
     rcl_node_t node;
-    rclc_node_init_default(&node, "irrigation_node", "", &support);
+    RCCHECK(rclc_node_init_default(&node, "irrigation_node", "", &support));
 
     // crea il publisher per il topic "irrigation_state" che pubblica messaggi true o false a seconda dello stato attuale di irrigazione
-    rclc_publisher_init_default(
+    RCCHECK(rclc_publisher_init_default(
         &publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
         "/irrigation_state"
-    );
+    ));
 
     //inizializza msg
     std_msgs__msg__Bool__init(&msg);
 
-    //crea un timer che chiama la funzione ogni 3 sec 
+    //crea un timer che chiama la funzione ogni 7 sec 
     rcl_timer_t timer;
-    rclc_timer_init_default(
+    RCCHECK(rclc_timer_init_default(
         &timer,
-        &support.context,
-        RCL_MS_TO_NS(7000),
+        &support,
+        RCL_MS_TO_NS(7000), //timer timeout
         timer_callback
-    );
+    ));
 
     //crea executor che gestice il timer 
     rclc_executor_t executor;
-    rclc_executor_init(&executor, &support.context, 1, &allocator);
-    rclc_executor_add_timer(&executor, &timer);
+    RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
+    RCCHECK(rclc_executor_add_timer(&executor, &timer));
 
 
     while (1) {
@@ -90,4 +93,9 @@ void ROSTask(void *pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
+    // libera risorse
+	RCCHECK(rcl_publisher_fini(&publisher, &node));
+	RCCHECK(rcl_node_fini(&node));
+
+  	vTaskDelete(NULL);
 }
