@@ -17,11 +17,7 @@ int main(void) {
     
     // crea una coda per comunicare i dati dei task irrigatore al task ros
     QueueHandle_t rosNotifyQueue = xQueueCreate(10, sizeof(const char *));
-<<<<<<< HEAD
-
-=======
     
->>>>>>> microros
     // crea un mutex per proteggere l'accesso alla variabile 'irrigationActive'
     SemaphoreHandle_t irrigationMutex = xSemaphoreCreateMutex();
     

@@ -33,7 +33,6 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     publish_irrigation_state("Timer");
 }
 
->>>>>>> microros
 void ROSTask(void *pvParameters) {
 
     ROSTaskParams *params = (ROSTaskParams *) pvParameters;
@@ -84,7 +83,7 @@ void ROSTask(void *pvParameters) {
         //esegue callbeck timer 
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
 
-        if(xQueueReceive(rosNotifyQueue,&irrigationName,0)==pdPASS){
+        if(xQueueReceive(rosNotifyQueue,&irrigatorName,0)==pdPASS){
             //se arriva una notifica sulla coda pubblica immediatamente
             publish_irrigation_state("Event");
         }
