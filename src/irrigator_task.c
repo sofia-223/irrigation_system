@@ -20,19 +20,30 @@ void IrrigatorTask(void *pvParameters) {
             int shouldIrrigate = (!received.raining && (received.humidity<60.0f || received.temperature>30.0f));
 
             if (shouldIrrigate) {
-                // Prova a entrare in mutua esclusionex
-                //if (xSemaphoreTake(params->irrigationMutex, 0) == pdPASS) {
+                // Prova a entrare in mutua esclusione
+                if (xSemaphoreTake(params->irrigationMutex, pdMS_TO_TICKS(50)) == pdPASS) {
                     if (!(*params->irrigationActive)) {
                         *params->irrigationActive = true;
+                        xSemaphoreGive(params->irrigationMutex);
+
+                        xQueueSend(params->rosNotifyQueue, &params->name, 0);
                         printf("[%s] Irrigating...\n", params->name);
                         vTaskDelay(pdMS_TO_TICKS(2000));
+
+                        xSemaphoreTake(params->irrigationMutex,portMAX_DELAY);
                         *params->irrigationActive = false;
+                        xSemaphoreGive(params->irrigationMutex);
+
+                        xQueueSend(params->rosNotifyQueue, &params->name, 0);
                         printf("[%s] Done irrigating.\n", params->name);
                     }
-                    //xSemaphoreGive(params->irrigationMutex);
-               // } else {
-                 //   printf("[%s] Un altro irrigatore è già attivo.\n", params->name);
-               // }
+                    else {
+                        xSemaphoreGive(params->irrigationMutex);
+                        printf("[%s] Altro irrigatore attivo\n",params->name);
+                    }
+                } else {
+                    printf("[%s] mutex occupato.\n", params->name);
+                }
             } else {
                 printf("[%s] No sprinkler needed.\n", params->name);
             }

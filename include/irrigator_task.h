@@ -11,6 +11,7 @@
 
 typedef struct {
     QueueHandle_t sensorQueue;                      //È la coda dove IrrigatorTask legge i dati generati da SensorTask
+    QueueHandle_t rosNotifyQueue;
     SemaphoreHandle_t irrigationMutex;              //mutex
     bool* irrigationActive;                         //È la variabile condivisa che dice se l’irrigazione è attiva
     const char* name;                               //nome dell'irrigatore

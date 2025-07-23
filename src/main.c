@@ -15,6 +15,9 @@ int main(void) {
     // crea una coda per comunicare i dati dei sensori tra i task (fino a 10 elementi)
     QueueHandle_t sensorQueue = xQueueCreate(10, sizeof(SensorData));
     
+    // crea una coda per comunicare i dati dei task irrigatore al task ros
+    QueueHandle_t rosNotifyQueue = xQueueCreate(10, sizeof(const char *));
+    
     // crea un mutex per proteggere l'accesso alla variabile 'irrigationActive'
     SemaphoreHandle_t irrigationMutex = xSemaphoreCreateMutex();
     
@@ -30,6 +33,7 @@ int main(void) {
     // prepara i parametri per l'IrrigatorTask (serve una struct con tutti i riferimenti)
     IrrigatorParams irrigator1Params  = {
         .sensorQueue = sensorQueue,
+        .rosNotifyQueue = rosNotifyQueue,
         .irrigationMutex = irrigationMutex,
         .irrigationActive = &irrigationActive,
         .name = "Irrigator 1"
@@ -37,6 +41,7 @@ int main(void) {
 
     IrrigatorParams irrigator2Params = {
         .sensorQueue = sensorQueue,
+        .rosNotifyQueue = rosNotifyQueue,
         .irrigationMutex = irrigationMutex,
         .irrigationActive = &irrigationActive,
         .name = "Irrigator 2"
@@ -44,14 +49,16 @@ int main(void) {
 
     IrrigatorParams irrigator3Params = {
         .sensorQueue = sensorQueue,
+        .rosNotifyQueue = rosNotifyQueue,
         .irrigationMutex = irrigationMutex,
         .irrigationActive = &irrigationActive,
         .name = "Irrigator 3"
     };
 
     ROSTaskParams rosParams = {
-        //.irrigationMutex = irrigationMutex,
-        .irrigationActive = &irrigationActive
+        .irrigationMutex = irrigationMutex,
+        .irrigationActive = &irrigationActive,
+        .rosNotifyQueue = rosNotifyQueue
     };
 
     

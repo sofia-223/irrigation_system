@@ -8,8 +8,9 @@
 
 
 typedef struct {
-    //SemaphoreHandle_t irrigationMutex;
+    SemaphoreHandle_t irrigationMutex;
     bool* irrigationActive;
+    QueueHandle_t rosNotifyQueue;
 } ROSTaskParams;
 
 void ROSTask(void *pvParameters);
