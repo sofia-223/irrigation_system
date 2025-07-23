@@ -8,9 +8,9 @@
 
 
 typedef struct {
-    //SemaphoreHandle_t irrigationMutex;
+    SemaphoreHandle_t irrigationMutex;
     bool* irrigationActive;
-    QueueHandle_t rosNotifyQueue;               //È la coda dove IrrigatorTask comunica lo stato dell'irrigatore al ROS task
+    QueueHandle_t rosNotifyQueue;
 } ROSTaskParams;
 
 void ROSTask(void *pvParameters);
