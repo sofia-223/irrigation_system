@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <time.h>           //per operazioni legate alla generazione dei dati casuali
 
 #include "sensor_task.h"
 

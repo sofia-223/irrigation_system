@@ -1,10 +1,10 @@
 #ifndef IRRIGATOR_TASK_H
 #define IRRIGATOR_TASK_H
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
+#include "FreeRTOS.h"                   //per la definizione di base del sistema FreeRTOS e l'utilizzo di macro come pdMS_TO_TICKS()
+#include "task.h"                       //per la creazione e le operazioni sui task (per es il delay)
+#include "queue.h"                      //per la comunicazione tramite code tra i task
+#include "semphr.h"                     //per utilizzare i semafori
 #include "data_structure.h"
 #include <stdbool.h>
 
