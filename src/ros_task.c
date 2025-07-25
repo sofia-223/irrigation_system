@@ -32,9 +32,9 @@ static void publish_irrigation_state(const char* source) {
 
 
 //funzione chiamata periodicamente dal timer per pubblicare lo stato dell'irrigazione
-void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 	RCLC_UNUSED(last_call_time);        //per evitare warning del compilatore sul parametro non usato
-    if (timer == NULL) {
+    if (timer == NULL) {                //se il puntatore timer è NULL esce senza fare nulla
         return;
     }
     publish_irrigation_state("Timer");
@@ -49,45 +49,45 @@ void ROSTask(void *pvParameters) {
     irrigationMutex = params->irrigationMutex;
     rosNotifyQueue=params->rosNotifyQueue;
 
-    // inizializza allocatore 
+    // inizializza allocatore per la memoria
     rcl_allocator_t allocator = rcl_get_default_allocator();
 
-    // inizializza struttura di supporto
+    // inizializza struttura di supporto per nodi e timer
     rclc_support_t support;
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
     
     // crea un nodo ROS chiamato irrigation_node
-    rcl_node_t node;
-    RCCHECK(rclc_node_init_default(&node, "irrigation_node", "", &support));
+    rcl_node_t node;            //varaibile in cui viene salvato il nodo
+    RCCHECK(rclc_node_init_default(&node, "irrigation_node", "", &support));            //creo il nodo ROS
 
     // crea il publisher per il topic "irrigation_state" che pubblica messaggi true o false a seconda dello stato attuale di irrigazione
-    RCCHECK(rclc_publisher_init_default(
+    RCCHECK(rclc_publisher_init_default(                                                //creo il publisher
         &publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
-        "/irrigation_state"
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),       //nome del pacchetto, nome della sottocartella, tipo di messaggio
+        "/irrigation_state"                                     //topic name
     ));
 
     //inizializza msg
     std_msgs__msg__Bool__init(&msg);
 
-    //crea un timer che chiama la funzione ogni 7 sec 
+    //crea un timer, scaduto il quale, bisogna chiamare la funzione ogni 7 sec 
     rcl_timer_t timer;
-    RCCHECK(rclc_timer_init_default(
+    RCCHECK(rclc_timer_init_default(        //usaimo un timer per pubblicare lo stato dell'irrigatore ogni 7 secondi
         &timer,
         &support,
         RCL_MS_TO_NS(7000), //timer timeout
         timer_callback
     ));
 
-    //crea executor che gestice il timer 
-    rclc_executor_t executor;
-    RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
-    RCCHECK(rclc_executor_add_timer(&executor, &timer));
+    //crea executor che gestice il timer: in questo caso, serve a chiamare automaticamente la funzione timer_callback()
+    rclc_executor_t executor;                                                       //definizione
+    RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));        //inizializzazione: in questo caso gestisce solo 1 timer
+    RCCHECK(rclc_executor_add_timer(&executor, &timer));                            //assegnazione del timer all'esecutore
 
 
     while (1) {
-        //esegue callbeck timer 
+        //l'esecutore controlla se è scaduto il timer e, se si, chiama la timer_callback
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
 
         if(xQueueReceive(rosNotifyQueue,&irrigatorName,0)==pdPASS){
@@ -98,8 +98,8 @@ void ROSTask(void *pvParameters) {
     }
 
     // libera risorse
-	RCCHECK(rcl_publisher_fini(&publisher, &node));
-	RCCHECK(rcl_node_fini(&node));
+	RCCHECK(rcl_publisher_fini(&publisher, &node));     //Chiudo il nodo publisher e libero le risorse associate
+	RCCHECK(rcl_node_fini(&node));                      //Chiudo il nodo ROS
 
   	vTaskDelete(NULL);
 }
